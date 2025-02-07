@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Boy Advance - Play Doom</title>
+<style>
+  body {
+    background-image: url('https://wallpaperaccess.com/full/5765145.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .gameboy {
+    width: 400px;
+    height: 650px;
+    background: linear-gradient(145deg, #9ba2a5, #8b8b8b);
+    border-radius: 20px 20px 80px 20px;
+    padding: 20px;
+    box-shadow: 
+      -5px -5px 10px rgba(255,255,255,0.8),
+      5px 5px 10px rgba(0,0,0,0.25),
+      inset 2px 2px 5px rgba(255,255,255,0.5),
+      inset -2px -2px 5px rgba(0,0,0,0.1);
+    position: relative;
+  }
+  .screen-area {
+    background: linear-gradient(145deg, #a7aeb1, #8f979a);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 
+      inset 2px 2px 5px rgba(0,0,0,0.2),
+      inset -2px -2px 5px rgba(255,255,255,0.1);
+  }
+  .screen {
+    background-color: #000;
+    width: 340px;
+    height: 280px;
+    border: 10px solid #222;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  }
+  .browser-content {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: none; /* Hide the iframe initially */
+  }
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+  }
+  .d-pad {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(145deg, #4e4e4e, #3a3a3a);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 
+      2px 2px 5px rgba(0,0,0,0.3),
+      -2px -2px 5px rgba(255,255,255,0.1);
+  }
+  .d-pad::before, .d-pad::after {
+    content: '';
+    position: absolute;
+    background-color: #222;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5);
+  }
+  .d-pad::before {
+    width: 100px;
+    height: 40px;
+    top: 40px;
+    left: 10px;
+    border-radius: 5px;
+  }
+  .d-pad::after {
+    width: 40px;
+    height: 100px;
+    top: 10px;
+    left: 40px;
+    border-radius: 5px;
+  }
+  .d-pad-button {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    pointer-events: none; /* Disable button functionality */
+  }
+  .d-pad-up { top: 0; left: 40px; }
+  .d-pad-right { top: 40px; right: 0; }
+  .d-pad-down { bottom: 0; left: 40px; }
+  .d-pad-left { top: 40px; left: 0; }
+  .buttons {
+    display: flex;
+  }
+  .button {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(145deg, #e60000, #b80000);
+    border-radius: 50%;
+    margin: 0 15px;
+    box-shadow: 
+      2px 2px 5px rgba(0,0,0,0.3),
+      -2px -2px 5px rgba(255,255,255,0.1),
+      inset 2px 2px 5px rgba(255,255,255,0.2),
+      inset -2px -2px 5px rgba(0,0,0,0.1);
+    pointer-events: none; /* Disable button functionality */
+    border: none;
+    color: white;
+    font-weight: bold;
+  }
+  .start-select {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  .ss-button {
+    width: 70px;
+    height: 25px;
+    background: linear-gradient(145deg, #4e4e4e, #3a3a3a);
+    border-radius: 15px;
+    margin: 0 15px;
+    box-shadow: 
+      2px 2px 5px rgba(0,0,0,0.3),
+      -2px -2px 5px rgba(255,255,255,0.1);
+    pointer-events: none; /* Disable button functionality */
+    border: none;
+    color: white;
+  }
+  .speaker {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-content: space-between;
+  }
+  .speaker-hole {
+    width: 8px;
+    height: 8px;
+    background-color: #444;
+    border-radius: 50%;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+  }
+  .brand {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    color: #444;
+    text-shadow: 1px 1px 1px rgba(255,255,255,0.5);
+  }
+  .legend {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    z-index: 1000;
+  }
+  .power-switch {
+    position: absolute;
+    top: 50px;
+    right: -10px;
+    width: 20px;
+    height: 40px;
+    background: linear-gradient(145deg, #4e4e4e, #3a3a3a);
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    box-shadow: 
+      2px 2px 5px rgba(0,0,0,0.3),
+      -2px -2px 5px rgba(255,255,255,0.1);
+  }
+  .power-switch::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 10px;
+    height: 30px;
+    background: linear-gradient(145deg, #e60000, #b80000);
+    border-radius: 3px;
+    transition: transform 0.3s;
+  }
+  .power-switch.on::after {
+    transform: translateY(-5px);
+  }
+  .screen-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 10;
+    transition: opacity 0.5s ease-in-out;
+  }
+  .screen-cover.off {
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* Pixelated "OMNI" logo */
+  .pixelated-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 32px;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000;
+    opacity: 0; /* Hidden by default */
+    z-index: 20;
+    transition: opacity 0.5s ease-in-out;
+  }
+  .pixelated-logo.show {
+    opacity: 1; /* Show the logo */
+  }
+  .pixelated-logo.fade-out {
+    opacity: 0; /* Fade out the logo */
+    transition: opacity 1s ease-in-out;
+  }
+</style>
+</head>
+<body>
+  <div class="gameboy">
+    <div class="power-switch" id="powerSwitch"></div>
+    <div class="screen-area">
+      <div class="screen">
+        <div class="screen-cover" id="screenCover"></div>
+        <!-- Pixelated "OMNI" logo -->
+        <div class="pixelated-logo" id="omniLogo">OMNI</div>
+        <!-- Embedded Doom Game -->
+        <iframe class="browser-content" id="game-iframe" src="https://mattiasgustavsson.com/wasm/doom-crt"></iframe>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="d-pad">
+        <button class="d-pad-button d-pad-up"></button>
+        <button class="d-pad-button d-pad-right"></button>
+        <button class="d-pad-button d-pad-down"></button>
+        <button class="d-pad-button d-pad-left"></button>
+      </div>
+      <div class="buttons">
+        <button class="button">B</button>
+        <button class="button">A</button>
+      </div>
+    </div>
+    <div class="start-select">
+      <button class="ss-button">Select</button>
+      <button class="ss-button">Start</button>
+    </div>
+    <div class="speaker">
+      <div class="speaker-hole"></div>
+      <div class="speaker-hole"></div>
+      <div class="speaker-hole"></div>
+      <div class="speaker-hole"></div>
+      <div class="speaker-hole"></div>
+      <div class="speaker-hole"></div>
+      <div class="speaker-hole"></div>
+      <div class="speaker-hole"></div>
+      <div class="speaker-hole"></div>
+    </div>
+    <div class="brand">NINTENDO GAME BOY</div>
+  </div>
+
+  <div class="legend">
+    Click the power switch on the right side to start the Game Boy<br><br>
+    Controls:<br>
+    Arrow Keys = Move<br>
+    CTRL = Shoot<br>
+    Space = Action<br>
+    Tab = Map
+  </div>
+
+  <script>
+    const powerSwitch = document.getElementById('powerSwitch');
+    const screenCover = document.getElementById('screenCover');
+    const gameIframe = document.getElementById('game-iframe');
+    const omniLogo = document.getElementById('omniLogo');
+    let isPoweredOn = false;
+
+    // Power switch functionality
+    powerSwitch.addEventListener('click', function() {
+      if (!isPoweredOn) {
+        this.classList.add('on');
+        isPoweredOn = true;
+        screenCover.classList.add('off');
+
+        // Show the "OMNI" logo
+        omniLogo.classList.add('show');
+
+        // Hide the logo after 3 seconds
+        setTimeout(() => {
+          omniLogo.classList.remove('show');
+          omniLogo.classList.add('fade-out');
+        }, 3000);
+
+        // Show the game iframe after the logo fades out
+        setTimeout(() => {
+          gameIframe.style.display = 'block';
+          gameIframe.contentWindow.focus();
+        }, 4000); // Adjust this delay to match the fade-out duration
+      }
+    });
+  </script>
+</body>
+</html>
